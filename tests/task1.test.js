@@ -1,27 +1,27 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require("puppeteer");
 
-async function checkUsersDisplayed() {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.goto('http://127.0.0.1:5500/'); 
+describe("Провірка відображення користувачів", () => {
+  let browser;
+  let page;
 
-  
-  const userList = await page.$('.usersList');
-  await  page.waitForTimeout(3000);
+  beforeAll(async () => {
+    browser = await puppeteer.launch({ headless: true });
+    page = await browser.newPage();
+  });
 
-  if (userList) {
-    const userItems = await userList.$$('li');
+  afterAll(async () => {
+    await browser.close();
+  });
 
-    if (userItems.length > 0) {
-      console.log(`Користувачі відображені на сторінці.`);
-    } else {
-      console.log(`На сторінці немає користувачів.`);
-    }
-  } else {
-    console.log(`Елемент з класом "usersList" не знайдено на сторінці.`);
-  }
+  test("Користувачі відображені на сторінці", async () => {
+    await page.goto("http://127.0.0.1:5500/");
 
-  await browser.close();
-}
+    await page.waitForSelector(".usersList li");
 
-checkUsersDisplayed().catch(error => console.error(error));
+    const userItems = await page.$$eval(".usersList li", (items) =>
+      items.map((item) => item.textContent)
+    );
+
+    expect(userItems.length).toBeGreaterThan(0);
+  });
+});
